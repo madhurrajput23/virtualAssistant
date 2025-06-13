@@ -5,14 +5,14 @@ import moment from "moment/moment.js";
 export const getCurrentUser = async (req, res) => {
   try {
     const userId = req.userId; // Assuming userId is set by the isAuth middleware
-    const user = await User.findById(userId).select("-password -__v"); // Exclude password and version key from the response
+    const user = await User.findById(userId).select("-password"); // Exclude password and version key from the response
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
     return res.status(200).json(user);
   } catch (error) {
     console.error("Error fetching current user:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(400).json({ message: "get current user error" });
   }
 };
 
@@ -20,11 +20,11 @@ export const updateAssistant = async (req, res) => {
   try {
     const { assistantName, imageUrl } = req.body;
     let assistantImage;
-    if (imageUrl) {
-      assistantImage = imageUrl; // if given image are selected from frontend
-    } else {
-      assistantImage = await uploadOnCloudinary(req.file.path); // if image is uploaded from input
-    }
+    if(req.file){
+   assistantImage=await uploadOnCloudinary(req.file.path)
+}else{
+   assistantImage=imageUrl
+}
 
     const user = await User.findByIdAndUpdate(
       req.userId,
@@ -56,46 +56,39 @@ export const askToAssistant = async (req, res) => {
     }
     const geminiResult = JSON.parse(jsonMatch[0]);
     const type = geminiResult.type;
-    switch (type) {
-      case "get_date":
-        return res.json({
-          type,
-          userInput: geminiResult.userInput,
-          response: `current date is ${moment().format("YYYY-MM-DD")}`,
-        });
-      case "get_time":
-        return res.json({
-          type,
-          userInput: geminiResult.userInput,
-          response: `current time is ${moment().format("HH:mm:A")}`,
-        });
-      case "get_day":
-        return res.json({
-          type,
-          userInput: geminiResult.userInput,
-          response: `current day is ${moment().format("dddd")}`,
-        });
-      case "get_month":
-        return res.json({
-          type,
-          userInput: geminiResult.userInput,
-          response: `current month is ${moment().format("MMMM")}`,
-        });
-      case "google_search":
-      case "youtube_search":
-      case "youtube_video":
-      case "youtube_play":
-      case "general":
-      case "get_weather":
-      case "calculator_open":
-      case "instagram_open":
-      case "facebook_open":
-      case "twitter_open":
-      case "linkedin_open":
-      case "github_open":
-      case "open_website":
-      case "get_news":
-      case "get_quote":
+   switch(type){
+         case 'get-date' :
+            return res.json({
+               type,
+               userInput:gemResult.userInput,
+               response:`current date is ${moment().format("YYYY-MM-DD")}`
+            });
+            case 'get-time':
+                return res.json({
+               type,
+               userInput:gemResult.userInput,
+               response:`current time is ${moment().format("hh:mm A")}`
+            });
+             case 'get-day':
+                return res.json({
+               type,
+               userInput:gemResult.userInput,
+               response:`today is ${moment().format("dddd")}`
+            });
+            case 'get-month':
+                return res.json({
+               type,
+               userInput:gemResult.userInput,
+               response:`today is ${moment().format("MMMM")}`
+            });
+      case 'google-search':
+      case 'youtube-search':
+      case 'youtube-play':
+      case 'general':
+      case  "calculator-open":
+      case "instagram-open": 
+       case "facebook-open": 
+       case "weather-show" :
         return res.json({
           type,
           userInput: geminiResult.userInput,
