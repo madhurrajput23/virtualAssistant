@@ -23,10 +23,9 @@ const Home = () => {
   const startRecognition = () => {
     if (!isRecognizingRef.current || !isSpeakingRef.current) {
       try {
-        recognitionRef.current.start();
-        setListening(true);
+        recognitionRef.current?.start();
       } catch (error) {
-        if (!error.message.icludes("start")) {
+        if (error.name !== "InvalidStateError") {
           console.error("Recognition start error:", error);
         }
       }
@@ -43,6 +42,7 @@ const Home = () => {
     // }
     isSpeakingRef.current = true;
     utterence.onend = () => {
+      setAiText("")
       isSpeakingRef.current = false;
       setTimeout(() => {
         startRecognition();
@@ -52,53 +52,34 @@ const Home = () => {
     synth.speak(utterence);
   };
 
-  const handleCommand = (data) => {
-    const { type, userInput, response } = data;
-    speak(response);
+ const handleCommand=(data)=>{
+    const {type,userInput,response}=data
+      speak(response);
+    
+    if (type === 'google-search') {
+      const query = encodeURIComponent(userInput);
+      window.open(`https://www.google.com/search?q=${query}`, '_blank');
+    }
+     if (type === 'calculator-open') {
+  
+      window.open(`https://www.google.com/search?q=calculator`, '_blank');
+    }
+     if (type === "instagram-open") {
+      window.open(`https://www.instagram.com/`, '_blank');
+    }
+    if (type ==="facebook-open") {
+      window.open(`https://www.facebook.com/`, '_blank');
+    }
+     if (type ==="weather-show") {
+      window.open(`https://www.google.com/search?q=weather`, '_blank');
+    }
 
-    if (type === "google_search") {
+    if (type === 'youtube-search' || type === 'youtube-play') {
       const query = encodeURIComponent(userInput);
-      window.open(`https://www.google.com/search?q=${query}`, "_blank");
+      window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
     }
-    if (type === "youtube_search") {
-      const query = encodeURIComponent(userInput);
-      window.open(
-        `https://www.youtube.com/results?search_query=${query}`,
-        "_blank"
-      );
-    }
-    if (type === "wikipedia_search") {
-      const query = encodeURIComponent(userInput);
-      window.open(`https://en.wikipedia.org/wiki/${query}`, "_blank");
-    }
-    if (type === "caculator_open") {
-      window.open("https://www.google.com/search?q=calculator", "_blank");
-    }
-    if (type === "weather_search") {
-      const query = encodeURIComponent(userInput);
-      window.open(`https://www.google.com/search?q=weather+${query}`, "_blank");
-    }
-    if (type === "instagram_search") {
-      const query = encodeURIComponent(userInput);
-      window.open(`https://www.instagram.com/explore/tags/${query}`, "_blank");
-    }
-    if (type === "twitter_search") {
-      const query = encodeURIComponent(userInput);
-      window.open(`https://twitter.com/search?q=${query}`, "_blank");
-    }
-    if (type === "facebook_search") {
-      const query = encodeURIComponent(userInput);
-      window.open(`https://www.facebook.com/search/top?q=${query}`, "_blank");
-    }
-    if (type === "linkedin_search") {
-      const query = encodeURIComponent(userInput);
-      window.open(
-        `https://www.linkedin.com/search/results/people/?keywords=${query}`,
-        "_blank"
-      );
-    }
-  };
 
+  }
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -185,7 +166,7 @@ const Home = () => {
       }
 
       const greeting = new SpeechSynthesisUtterance(
-        `Hello, I am ${userData?.assistantName}. How can I assist you today?`
+        `Hello, I am ${userData?.name}. How can I assist you today?`
       );
       greeting.lang = "en-US";
       window.speechSynthesis.speak(greeting);
@@ -205,7 +186,6 @@ const Home = () => {
       const result = await axios.get(`${serverUrl}/api/auth/logout`, {
         withCredentials: true,
       });
-      console.log(result);
       setUserData(null);
       navigate("/signin");
     } catch (error) {
