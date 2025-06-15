@@ -20,8 +20,21 @@ const Home = () => {
   const isRecognizingRef = useRef(false);
   const synth = window.speechSynthesis;
 
+   const handleLogout = async () => {
+    try {
+      const result = await axios.get(`${serverUrl}/api/auth/logout`, {
+        withCredentials: true,
+      });
+      setUserData(null);
+      navigate("/signin");
+    } catch (error) {
+      setUserData(null);
+      console.error("Error during logout:", error);
+    }
+  };
+
   const startRecognition = () => {
-    if (!isRecognizingRef.current || !isSpeakingRef.current) {
+    if (!isSpeakingRef.current || !isRecognizingRef.current ) {
       try {
         recognitionRef.current?.start();
       } catch (error) {
@@ -181,18 +194,7 @@ const Home = () => {
     };
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      const result = await axios.get(`${serverUrl}/api/auth/logout`, {
-        withCredentials: true,
-      });
-      setUserData(null);
-      navigate("/signin");
-    } catch (error) {
-      setUserData(null);
-      console.error("Error during logout:", error);
-    }
-  };
+ 
   return (
     <div
       className="w-full h-[100vh] bg-gradient-to-t from-[black] to-[#030353] flex justify-center items-center 
